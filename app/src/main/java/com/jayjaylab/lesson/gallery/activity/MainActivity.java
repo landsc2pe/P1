@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         checkPermission();
 
+
         fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -115,11 +116,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            String[] projection = {MediaStore.Images.Media._ID,
-                MediaStore.Images.Media.BUCKET_ID};
+            String[] projection = {MediaStore.Images.Thumbnails._ID,
+                MediaStore.Images.Thumbnails.DATA};
 
             CursorLoader cursorLoader = new CursorLoader(getApplicationContext(),
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
                     projection, null, null, null);
 
             return cursorLoader;
@@ -127,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
             data.moveToFirst();
 
             uris = new Uri[data.getCount()];
@@ -135,11 +137,15 @@ public class MainActivity extends AppCompatActivity {
             while (data.moveToNext()) {
                 id = data.getInt(0);
                 Uri uri = Uri.parse(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI + "/" + id);
-                Log.d("UU",""+uri);
+                        MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
+                Log.d("UU",""+ getPathFromUri(uri));
                 uris[count++] = uri;
             }
+
             data.close();
+
+
+
 
         }
 
@@ -198,5 +204,14 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    public String getPathFromUri(Uri uri){
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null );
+        cursor.moveToNext();
+        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
+        cursor.close();
+
+        return path;
     }
 }
