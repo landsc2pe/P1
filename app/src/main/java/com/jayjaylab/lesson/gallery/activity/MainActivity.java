@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,12 @@ import android.widget.Toast;
 import com.jayjaylab.lesson.gallery.R;
 import com.jayjaylab.lesson.gallery.fragment.Fragment1;
 import com.jayjaylab.lesson.gallery.fragment.Fragment2;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -108,7 +115,68 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacks1 = new LoaderManager
+            .LoaderCallbacks<Cursor>() {
 
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            String[] projection = {MediaStore.Images.Media._ID,
+                    MediaStore.Images.Media.DATA};
+
+            CursorLoader cursorLoader = new CursorLoader(getApplicationContext(),
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection, null, null, null);
+
+            return cursorLoader;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            Log.d(TAG, "count : " + data.getCount());
+            data.moveToFirst();
+
+            uris = new Uri[data.getCount()];
+            imagePath = new String[data.getCount()];
+
+            int id;
+            int count = 0;
+//            Map<String, Integer> mapDirectory = new HashMap<>();
+            Set<String> setDirectory = new HashSet<>();
+
+
+            while (data.moveToNext()) {
+                //making image path to array
+                id = data.getInt(data.getColumnIndex(MediaStore.Images.Media._ID));
+                String path = data.getString( data.getColumnIndex(MediaStore.Images.Media.DATA) );
+                File file = new File(path);
+                Log.d(TAG, "id : " + id + ", path : " + path + ", parent : "+ file
+                        .getParent());
+//                mapDirectory.put(file.getParent(), mapDirectory.get(fil))
+                setDirectory.add(file.getParent());
+
+                imagePath[count] = path;
+
+                id = data.getInt(0);
+                Uri uri = Uri.parse(
+                        MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
+                uris[count] = uri;
+                count++;
+            }
+            data.close();
+
+            Log.d(TAG, "!!!!!!!!");
+            Log.d(TAG, "# : " + setDirectory.size());
+            for(String path :setDirectory) {
+                Log.d(TAG, "path : " + path);
+            }
+            Log.d(TAG, "!!!!!!!!");
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
+    };
 
 
     private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
@@ -116,7 +184,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             String[] projection = {MediaStore.Images.Thumbnails._ID,
-                MediaStore.Images.Thumbnails.DATA};
+                MediaStore.Images.Thumbnails.DATA,
+                MediaStore.Images.Thumbnails.IMAGE_ID};
 
             CursorLoader cursorLoader = new CursorLoader(getApplicationContext(),
                     MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
@@ -127,32 +196,43 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
+            Log.d(TAG, "count : " + data.getCount());
             data.moveToFirst();
 
             uris = new Uri[data.getCount()];
             imagePath = new String[data.getCount()];
 
-            int id;
+            Set<String> setDirectory = new HashSet<>();
+            String path;
+            int id, imageId;
             int count = 0;
-            int count1 = 0;
-
             while (data.moveToNext()) {
-
                 //making image path to array
-                String path = data.getString( data.getColumnIndex( "_data" ) );
-                imagePath[count1++] = path;
+                path = data.getString(data.getColumnIndex(MediaStore.Images.Thumbnails.DATA) );
+                id = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails._ID));
+                imageId = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails
+                        .IMAGE_ID));
+                Log.d(TAG, "id : " + id + ", imageId : " + imageId);
 
-                id = data.getInt(0);
+                // TODO: 2016. 5. 14. get original path from thumbnail id or imageid.
+                
+
+                imagePath[count] = path;
                 Uri uri = Uri.parse(
                         MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-                uris[count++] = uri;
+
+
+                uris[count] = uri;
+                count++;
             }
             data.close();
 
-
-
-
+            Log.d(TAG, "!!!!!!!!");
+            Log.d(TAG, "# : " + setDirectory.size());
+            for(String path1 :setDirectory) {
+                Log.d(TAG, "path : " + path1);
+            }
+            Log.d(TAG, "!!!!!!!!");
         }
 
         @Override
@@ -160,12 +240,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
     @TargetApi(Build.VERSION_CODES.M)
+
     private void checkPermission() {
-        Log.i(TAG, "CheckPermission : " + checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        Log.i(TAG, "CheckPermission : " + ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.WRITE_EXTERNAL_STORAGE));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED
-                || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             // Should we show an explanation?
@@ -183,9 +266,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.e(TAG, "permission deny");
 
-            getLoaderManager().initLoader(0, null, loaderCallbacks);
-
+            getImageUriInBackground();
         }
+    }
+
+    void getImageUriInBackground() {
+        getLoaderManager().initLoader(0, null, loaderCallbacks);
     }
 
 
@@ -196,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-                    getLoaderManager().initLoader(0, null, loaderCallbacks);
+                    getImageUriInBackground();
 
                     // permission was granted, yay! do the
                     // calendar task you need to do.
