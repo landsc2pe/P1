@@ -28,7 +28,9 @@ import com.jayjaylab.lesson.gallery.fragment.Fragment2;
 public class MainActivity extends AppCompatActivity {
 
     public static Uri[] uris;
+    public static String[] imagePath;
     final String TAG = MainActivity.class.getSimpleName();
+
     private static int msn = 1;
     private final int MY_PERMISSION_REQUEST_STORAGE = 100;
 
@@ -46,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         checkPermission();
-
 
         fragmentManager = getSupportFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -83,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
                     msn--;
                 }
-
-
             }
 
 
@@ -132,16 +131,23 @@ public class MainActivity extends AppCompatActivity {
             data.moveToFirst();
 
             uris = new Uri[data.getCount()];
+            imagePath = new String[data.getCount()];
+
             int id;
             int count = 0;
+            int count1 = 0;
+
             while (data.moveToNext()) {
+
+                //making image path to array
+                String path = data.getString( data.getColumnIndex( "_data" ) );
+                imagePath[count1++] = path;
+
                 id = data.getInt(0);
                 Uri uri = Uri.parse(
                         MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-                Log.d("UU",""+ getPathFromUri(uri));
                 uris[count++] = uri;
             }
-
             data.close();
 
 
@@ -205,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-
+/*  Uri -> Path
     public String getPathFromUri(Uri uri){
         Cursor cursor = getContentResolver().query(uri, null, null, null, null );
         cursor.moveToNext();
@@ -213,5 +219,5 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
 
         return path;
-    }
+    }*/
 }

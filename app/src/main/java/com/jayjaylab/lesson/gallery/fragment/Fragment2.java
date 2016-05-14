@@ -1,9 +1,11 @@
 package com.jayjaylab.lesson.gallery.fragment;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -99,6 +101,32 @@ public class Fragment2 extends Fragment {
         recyclerViewGallery.setAdapter(adapterGallery);
 
 
+    }
+
+        Uri[] getThumbnails() {
+        String[] projection = {MediaStore.Images.Thumbnails._ID,
+                MediaStore.Images.Thumbnails.IMAGE_ID};
+        Cursor cur = getActivity().getContentResolver().query(
+                MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
+                projection,
+                null, null, null);
+        if (cur.getCount() == 0) {
+            return null;
+        }
+        cur.moveToFirst();
+
+        Uri[] urls = new Uri[cur.getCount()];
+        int id;
+        int count = 0;
+        while (cur.moveToNext()) {
+            id = cur.getInt(0);
+            Uri uri = Uri.parse(
+                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
+            urls[count++] = uri;
+        }
+        cur.close();
+
+        return urls;
     }
 
 //    // TODO: 2016. 5. 10. 비동기록 동작해야 함
