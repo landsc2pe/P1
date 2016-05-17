@@ -1,6 +1,7 @@
 package com.jayjaylab.lesson.gallery.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,9 +9,11 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.KeyEventCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +32,8 @@ import java.util.ArrayList;
  * Created by Homin on 2016-04-07.
  */
 public class Fragment2 extends Fragment {
+    final String TAG = Fragment2.class.getSimpleName();
+    public static String KEY_IMAGE = "image";
 
     static Uri[] imageFiles;
     static Context mContext;
@@ -40,6 +45,15 @@ public class Fragment2 extends Fragment {
     private ArrayList<MyData> myDataset;
     private File mGalleryFolder;
     private String GALLERY_LOCATION = ".thumbnails";
+
+    public static Fragment2 newInstance(String[] imageFiles) {
+        Bundle args = new Bundle();
+        args.putStringArray(KEY_IMAGE, imageFiles);
+
+        Fragment2 fragment = new Fragment2();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
 
     @Nullable
@@ -59,6 +73,12 @@ public class Fragment2 extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "bundle : " + savedInstanceState);
+        Bundle args = getArguments();
+        if(args != null) {
+            String[] images = args.getStringArray(KEY_IMAGE);
+            Log.d(TAG, "images : " + images);
+        }
 
         myDataset = new ArrayList<>();
 
@@ -93,7 +113,7 @@ public class Fragment2 extends Fragment {
 
         adapterAbove = new MyAdapter_Above(myDataset);
         adapterMenu = new MyAdapter(myDataset);
-        adapterGallery = new ImageAdapter(this, MainActivity.uris);
+//        adapterGallery = new ImageAdapter(this, MainActivity.uris);
 //        adapterGallery = new ImageAdapter(this, imageFiles);
 
         recyclerViewAbove.setAdapter(adapterAbove);

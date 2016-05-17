@@ -7,7 +7,6 @@ import android.content.CursorLoader;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -17,26 +16,30 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.jayjaylab.lesson.gallery.OnLoadListener;
 import com.jayjaylab.lesson.gallery.R;
 import com.jayjaylab.lesson.gallery.fragment.Fragment1;
 import com.jayjaylab.lesson.gallery.fragment.Fragment2;
+import com.jayjaylab.lesson.gallery.model.Image;
+import com.jayjaylab.lesson.gallery.model.Thumbnail;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class MainActivity extends AppCompatActivity {
-
-    public static Uri[] uris;
-    public static String[] imagePath;
+public class MainActivity extends AppCompatActivity implements OnLoadListener {
     final String TAG = MainActivity.class.getSimpleName();
+    final int LOADER_ID_THUMBNAIL = 0;
+    final int LOADER_ID_IMAGE = 1;
+
+    // new ones.
+    SparseArray<Image> arrayImage;
+    Thumbnail[] arrayThumbnails;
 
     private static int msn = 1;
     private final int MY_PERMISSION_REQUEST_STORAGE = 100;
@@ -44,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     FragmentManager fragmentManager;
     Fragment1 fragment_first;
     Fragment2 fragment_second;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragment_first = new Fragment1();
-        fragment_second = new Fragment2();
+        fragment_second = Fragment2.newInstance(null);
         fragmentTransaction.replace(R.id.main_layout, fragment_first);
         fragmentTransaction.commit();
 
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacks1 = new LoaderManager
+    private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacksForOriginalImages = new LoaderManager
             .LoaderCallbacks<Cursor>() {
 
         @Override
@@ -133,43 +135,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             Log.d(TAG, "count : " + data.getCount());
-            data.moveToFirst();
-
-            uris = new Uri[data.getCount()];
-            imagePath = new String[data.getCount()];
 
             int id;
             int count = 0;
-//            Map<String, Integer> mapDirectory = new HashMap<>();
-            Set<String> setDirectory = new HashSet<>();
+            String path;
+            SparseArray<Image> sparseArrayImage = new SparseArray<>(data.getCount());
 
-
+            data.moveToFirst();
             while (data.moveToNext()) {
-                //making image path to array
+                // making image path to array
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Media._ID));
-                String path = data.getString( data.getColumnIndex(MediaStore.Images.Media.DATA) );
-                File file = new File(path);
-                Log.d(TAG, "id : " + id + ", path : " + path + ", parent : "+ file
-                        .getParent());
-//                mapDirectory.put(file.getParent(), mapDirectory.get(fil))
-                setDirectory.add(file.getParent());
-
-                imagePath[count] = path;
-
-                id = data.getInt(0);
-                Uri uri = Uri.parse(
-                        MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-                uris[count] = uri;
+                path = data.getString( data.getColumnIndex(MediaStore.Images.Media.DATA));
+                sparseArrayImage.append(id, new Image(id, path));
                 count++;
             }
             data.close();
 
-            Log.d(TAG, "!!!!!!!!");
-            Log.d(TAG, "# : " + setDirectory.size());
-            for(String path :setDirectory) {
-                Log.d(TAG, "path : " + path);
+            if(sparseArrayImage != null && sparseArrayImage.size() > 0) {
+                onLoadOriginalImages(sparseArrayImage);
             }
-            Log.d(TAG, "!!!!!!!!");
         }
 
         @Override
@@ -179,10 +163,12 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
+    private LoaderManager.LoaderCallbacks<Cursor> loaderCallbacksForThumbnails = new LoaderManager.LoaderCallbacks<Cursor>() {
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Log.d(TAG, "id : " + id);
+
             String[] projection = {MediaStore.Images.Thumbnails._ID,
                 MediaStore.Images.Thumbnails.DATA,
                 MediaStore.Images.Thumbnails.IMAGE_ID};
@@ -197,42 +183,28 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             Log.d(TAG, "count : " + data.getCount());
-            data.moveToFirst();
-
-            uris = new Uri[data.getCount()];
-            imagePath = new String[data.getCount()];
-
-            Set<String> setDirectory = new HashSet<>();
+            
+            Thumbnail[] thumbnails = new Thumbnail[data.getCount()];
             String path;
             int id, imageId;
             int count = 0;
+
+            data.moveToFirst();
             while (data.moveToNext()) {
                 //making image path to array
                 path = data.getString(data.getColumnIndex(MediaStore.Images.Thumbnails.DATA) );
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails._ID));
                 imageId = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails
                         .IMAGE_ID));
-                Log.d(TAG, "id : " + id + ", imageId : " + imageId);
-
-                // TODO: 2016. 5. 14. get original path from thumbnail id or imageid.
-                
-
-                imagePath[count] = path;
-                Uri uri = Uri.parse(
-                        MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-
-
-                uris[count] = uri;
+//                Log.d(TAG, "id : " + id + ", imageId : " + imageId + ", path : " + path);
+                thumbnails[count] = new Thumbnail(id, imageId, path);
                 count++;
             }
             data.close();
 
-            Log.d(TAG, "!!!!!!!!");
-            Log.d(TAG, "# : " + setDirectory.size());
-            for(String path1 :setDirectory) {
-                Log.d(TAG, "path : " + path1);
+            if(thumbnails != null && thumbnails.length > 0) {
+                onLoadThumbnails(thumbnails);
             }
-            Log.d(TAG, "!!!!!!!!");
         }
 
         @Override
@@ -271,7 +243,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void getImageUriInBackground() {
-        getLoaderManager().initLoader(0, null, loaderCallbacks);
+        getLoaderManager().initLoader(LOADER_ID_THUMBNAIL, null, loaderCallbacksForThumbnails);
+        getLoaderManager().initLoader(LOADER_ID_IMAGE, null, loaderCallbacksForOriginalImages);
     }
 
 
@@ -297,13 +270,55 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-/*  Uri -> Path
-    public String getPathFromUri(Uri uri){
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null );
-        cursor.moveToNext();
-        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
-        cursor.close();
 
-        return path;
-    }*/
+    @Override
+    public void onLoadThumbnails(Thumbnail[] thumbnails) {
+        Log.d(TAG, "arrayThumbnails : " + thumbnails + ", # : " + thumbnails.length);
+        this.arrayThumbnails = thumbnails;
+        createMapOfDirectoryImages1(arrayImage, arrayThumbnails);
+    }
+
+    @Override
+    public void onLoadOriginalImages(SparseArray<Image> sparseArray) {
+        Log.d(TAG, "images : " + sparseArray + ", # : " + sparseArray.size());
+        this.arrayImage = sparseArray;
+        createMapOfDirectoryImages1(arrayImage, arrayThumbnails);
+    }
+
+    synchronized Map<String, List<Image>> createMapOfDirectoryImages1(
+            SparseArray<Image> arrayImage, Thumbnail[] thumbnails) {
+        if (arrayImage == null || thumbnails == null)
+            return null;
+
+        Map<String, List<Image>> map = new HashMap<>();
+
+        for(Thumbnail thumbnail : thumbnails) {
+            Log.d(TAG, "thumbnail : " + thumbnail);
+            // FIXME: 2016. 5. 17. why is thumbnail null????
+            if(thumbnail != null) {
+                Image originalImage = arrayImage.get(thumbnail.getImageId());
+                if(originalImage != null) {
+                    Log.d(TAG, "originalImage : " + originalImage);
+                    originalImage.setThumbnail(thumbnail);
+                    String parent = new File(originalImage.getPath()).getParent();
+                    if (map.containsKey(parent)) {
+                        List<Image> list = map.get(parent);
+                        list.add(originalImage);
+                    } else {
+                        List<Image> list = new ArrayList<>(10);
+                        list.add(originalImage);
+                        map.put(parent, list);
+                    }
+                }
+            }
+        }
+
+        Set<Map.Entry<String, List<Image>>> entrySet = map.entrySet();
+        for(Map.Entry entry : entrySet) {
+            Log.d(TAG, "key : " + entry.getKey() + ", values : " + entry.getValue());
+        }
+
+
+        return map;
+    }
 }
