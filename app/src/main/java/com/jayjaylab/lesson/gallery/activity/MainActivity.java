@@ -30,12 +30,11 @@ import com.jayjaylab.lesson.gallery.model.Image;
 import com.jayjaylab.lesson.gallery.model.Thumbnail;
 
 import java.io.File;
-<<<<<<< HEAD
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-=======
-import java.util.*;
->>>>>>> origin/master
 
 public class MainActivity extends AppCompatActivity implements OnLoadListener {
     final String TAG = MainActivity.class.getSimpleName();
@@ -201,22 +200,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails._ID));
                 imageId = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails
                         .IMAGE_ID));
-<<<<<<< HEAD
-                Log.d(TAG, "id : " + id + ", imageId : " + imageId +", path : "+ path);
 
-                // TODO: 2016. 5. 14. get original path from thumbnail id or imageid.
-                
-
-                imagePath[count] = path;
-                Uri uri = Uri.parse(
-                        MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-
-
-                uris[count] = uri;
-=======
 //                Log.d(TAG, "id : " + id + ", imageId : " + imageId + ", path : " + path);
                 thumbnails[count] = new Thumbnail(id, imageId, path);
->>>>>>> origin/master
                 count++;
             }
             data.close();
@@ -262,12 +248,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
     }
 
     void getImageUriInBackground() {
-<<<<<<< HEAD
-        getLoaderManager().initLoader(0, null, loaderCallbacks1);
-=======
         getLoaderManager().initLoader(LOADER_ID_THUMBNAIL, null, loaderCallbacksForThumbnails);
         getLoaderManager().initLoader(LOADER_ID_IMAGE, null, loaderCallbacksForOriginalImages);
->>>>>>> origin/master
     }
 
 
