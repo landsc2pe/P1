@@ -27,9 +27,7 @@ import com.jayjaylab.lesson.gallery.fragment.Fragment1;
 import com.jayjaylab.lesson.gallery.fragment.Fragment2;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -212,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails._ID));
                 imageId = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails
                         .IMAGE_ID));
-                Log.d(TAG, "id : " + id + ", imageId : " + imageId);
+                Log.d(TAG, "id : " + id + ", imageId : " + imageId +", path : "+ path);
 
                 // TODO: 2016. 5. 14. get original path from thumbnail id or imageid.
                 
@@ -271,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void getImageUriInBackground() {
-        getLoaderManager().initLoader(0, null, loaderCallbacks);
+        getLoaderManager().initLoader(0, null, loaderCallbacks1);
     }
 
 
