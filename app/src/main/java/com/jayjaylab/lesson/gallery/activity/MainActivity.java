@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
     SparseArray<Image> arrayImage;
     Thumbnail[] arrayThumbnails;
 
+    static Map<String, List<Image>> map;
+
     private static int msn = 1;
     private final int MY_PERMISSION_REQUEST_STORAGE = 100;
 
@@ -59,15 +61,14 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         Log.d(TAG, "externalCacheDir : " + getExternalCacheDir()
                 + ", internalCacheDir : " + getCacheDir());
 
-
+        //Permission Check with CursorLoader execute.
         checkPermission();
 
         fragmentManager = getSupportFragmentManager();
-        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragment_first = new Fragment1();
-        fragment_second = Fragment2.newInstance(null);
-        fragmentTransaction.replace(R.id.main_layout, fragment_first);
+        fragmentTransaction.replace(R.id.main_layout, fragment_first, "MainFragment");
         fragmentTransaction.commit();
 
 
@@ -82,9 +83,12 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             public void onClick(View v) {
 
                 if (msn == 1) {
+                    fragment_second = new Fragment2();
                     fragmentManager = getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.main_layout, fragment_second);
+                    fragmentTransaction.replace(R.id.main_layout, fragment_second, "ManageFragment");
+                    fragmentManager.findFragmentByTag("ManageFragment");
+                    Fragment2.sortImagePath(map);
                     fragmentTransaction.commit();
 
                     msn++;
@@ -92,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
                 } else if (msn == 2) {
                     fragmentManager = getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.main_layout, fragment_first);
+                    fragmentTransaction.replace(R.id.main_layout, fragment_first, "MainFragment");
                     fragmentTransaction.commit();
 
                     msn--;
@@ -141,21 +145,22 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             Log.d(TAG, "count : " + data.getCount());
 
             int id;
-            int count = 0;
             String path;
+            Thumbnail thumbnail;
+
             SparseArray<Image> sparseArrayImage = new SparseArray<>(data.getCount());
 
             data.moveToFirst();
             while (data.moveToNext()) {
                 // making image path to array
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Media._ID));
-                path = data.getString( data.getColumnIndex(MediaStore.Images.Media.DATA));
+                path = data.getString(data.getColumnIndex(MediaStore.Images.Media.DATA));
+
                 sparseArrayImage.append(id, new Image(id, path));
-                count++;
             }
             data.close();
 
-            if(sparseArrayImage != null && sparseArrayImage.size() > 0) {
+            if (sparseArrayImage != null && sparseArrayImage.size() > 0) {
                 onLoadOriginalImages(sparseArrayImage);
             }
         }
@@ -174,8 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             Log.d(TAG, "id : " + id);
 
             String[] projection = {MediaStore.Images.Thumbnails._ID,
-                MediaStore.Images.Thumbnails.DATA,
-                MediaStore.Images.Thumbnails.IMAGE_ID};
+                    MediaStore.Images.Thumbnails.DATA,
+                    MediaStore.Images.Thumbnails.IMAGE_ID};
 
             CursorLoader cursorLoader = new CursorLoader(getApplicationContext(),
                     MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
@@ -187,8 +192,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             Log.d(TAG, "count : " + data.getCount());
-            
+
             Thumbnail[] thumbnails = new Thumbnail[data.getCount()];
+
             String path;
             int id, imageId;
             int count = 0;
@@ -196,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             data.moveToFirst();
             while (data.moveToNext()) {
                 //making image path to array
-                path = data.getString(data.getColumnIndex(MediaStore.Images.Thumbnails.DATA) );
+                path = data.getString(data.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
                 id = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails._ID));
                 imageId = data.getInt(data.getColumnIndex(MediaStore.Images.Thumbnails
                         .IMAGE_ID));
@@ -207,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             }
             data.close();
 
-            if(thumbnails != null && thumbnails.length > 0) {
+            if (thumbnails != null && thumbnails.length > 0) {
                 onLoadThumbnails(thumbnails);
             }
         }
@@ -276,6 +282,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         }
     }
 
+    // TODO: 2016-05-18 ASK: why does it load Method two times.
+
     @Override
     public void onLoadThumbnails(Thumbnail[] thumbnails) {
         Log.d(TAG, "arrayThumbnails : " + thumbnails + ", # : " + thumbnails.length);
@@ -295,17 +303,22 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         if (arrayImage == null || thumbnails == null)
             return null;
 
-        Map<String, List<Image>> map = new HashMap<>();
+        map = new HashMap<>();
 
-        for(Thumbnail thumbnail : thumbnails) {
+        for (Thumbnail thumbnail : thumbnails) {
             Log.d(TAG, "thumbnail : " + thumbnail);
-            // FIXME: 2016. 5. 17. why is thumbnail null????
-            if(thumbnail != null) {
+
+            // FIXME: 2016. 5. 17. why is thumbnail null????  => Fixed (Switched row)
+            if (thumbnail != null) {
                 Image originalImage = arrayImage.get(thumbnail.getImageId());
-                if(originalImage != null) {
-                    Log.d(TAG, "originalImage : " + originalImage);
+                if (originalImage != null) {
                     originalImage.setThumbnail(thumbnail);
+                    Log.d(TAG, "originalImage : " + originalImage);
+
+                    //extract folder path.
                     String parent = new File(originalImage.getPath()).getParent();
+
+                    //mapping
                     if (map.containsKey(parent)) {
                         List<Image> list = map.get(parent);
                         list.add(originalImage);
@@ -319,11 +332,12 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         }
 
         Set<Map.Entry<String, List<Image>>> entrySet = map.entrySet();
-        for(Map.Entry entry : entrySet) {
+        for (Map.Entry entry : entrySet) {
             Log.d(TAG, "key : " + entry.getKey() + ", values : " + entry.getValue());
         }
 
 
         return map;
     }
+
 }

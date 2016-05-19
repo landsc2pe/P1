@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.jayjaylab.lesson.gallery.MyData;
 import com.jayjaylab.lesson.gallery.R;
 
 import java.util.ArrayList;
@@ -15,16 +14,16 @@ import java.util.ArrayList;
 /**
  * Created by HOMIN on 2016-05-12.
  */
-public class MyAdapter_Above extends RecyclerView.Adapter<MyAdapter_Above.ViewHolder> {
+public class MyAdapterAbove extends RecyclerView.Adapter<MyAdapterAbove.ViewHolder> {
     private ArrayList<MyData> mDataset;
 
-    public MyAdapter_Above(ArrayList<MyData> myDataset) {
+    public MyAdapterAbove(ArrayList<MyData> myDataset) {
         mDataset = myDataset;
     }
 
 
     @Override
-    public MyAdapter_Above.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MyAdapterAbove.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.my_view_above, parent, false);
@@ -35,7 +34,7 @@ public class MyAdapter_Above extends RecyclerView.Adapter<MyAdapter_Above.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(MyAdapter_Above.ViewHolder holder, int position) {
+    public void onBindViewHolder(MyAdapterAbove.ViewHolder holder, int position) {
 
         holder.mTextView.setText(mDataset.get(position).text);
         holder.mImageView.setImageResource(mDataset.get(position).img);

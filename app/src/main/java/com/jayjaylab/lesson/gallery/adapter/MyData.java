@@ -1,4 +1,4 @@
-package com.jayjaylab.lesson.gallery;
+package com.jayjaylab.lesson.gallery.adapter;
 
 /**
  * Created by jjkim on 2016. 5. 3..

@@ -1,15 +1,11 @@
 package com.jayjaylab.lesson.gallery.fragment;
 
 import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.KeyEventCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,16 +13,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.jayjaylab.lesson.gallery.MyData;
+import com.jayjaylab.lesson.gallery.OnClickListener;
 import com.jayjaylab.lesson.gallery.R;
-import com.jayjaylab.lesson.gallery.activity.MainActivity;
-import com.jayjaylab.lesson.gallery.adapter.ImageAdapter;
 import com.jayjaylab.lesson.gallery.adapter.MyAdapter;
-import com.jayjaylab.lesson.gallery.adapter.MyAdapter_Above;
+import com.jayjaylab.lesson.gallery.adapter.MyAdapterAbove;
+import com.jayjaylab.lesson.gallery.adapter.MyData;
+import com.jayjaylab.lesson.gallery.model.Image;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Homin on 2016-04-07.
@@ -38,6 +38,8 @@ public class Fragment2 extends Fragment {
     static Uri[] imageFiles;
     static Context mContext;
 
+    static int mapSize;
+
     private RecyclerView recyclerViewAbove;
     private RecyclerView recyclerViewMenu;
     private RecyclerView recyclerViewGallery;
@@ -46,15 +48,29 @@ public class Fragment2 extends Fragment {
     private File mGalleryFolder;
     private String GALLERY_LOCATION = ".thumbnails";
 
-    public static Fragment2 newInstance(String[] imageFiles) {
-        Bundle args = new Bundle();
-        args.putStringArray(KEY_IMAGE, imageFiles);
+//    public static Fragment2 newInstance(String[] imageFiles) {
+//        Fragment2 fragment = new Fragment2();
+//        Bundle args = new Bundle();
+//        args.putStringArray(KEY_IMAGE, imageFiles);
+//
+//        fragment.setArguments(args);
+//        return fragment;
+//    }
+//
 
-        Fragment2 fragment = new Fragment2();
-        fragment.setArguments(args);
-        return fragment;
+    public static void sortImagePath(Map<String, List<Image>> map) {
+        Log.d("sort", "" + map.size());
+        mapSize = map.size();
+
+
+        Iterator<String> iter = map.keySet().iterator();
+        while (iter.hasNext()) {
+            String keys = iter.next();
+            Log.d("key", keys);
+            Log.d("value", "" + map.get(keys));
+        }
+
     }
-
 
     @Nullable
     @Override
@@ -74,23 +90,17 @@ public class Fragment2 extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "bundle : " + savedInstanceState);
-        Bundle args = getArguments();
-        if(args != null) {
-            String[] images = args.getStringArray(KEY_IMAGE);
-            Log.d(TAG, "images : " + images);
-        }
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            String[] images = args.getStringArray(KEY_IMAGE);
+//            Log.d(TAG, "images : " + images);
+//        }
 
         myDataset = new ArrayList<>();
 
-        myDataset.add(new MyData("icon1", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon2", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon3", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon4", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon5", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon6", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon7", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon8", R.mipmap.ic_launcher));
-        myDataset.add(new MyData("icon9", R.mipmap.ic_launcher));
+        for (int i = 0; i < mapSize; i++) {
+            myDataset.add(new MyData("change", R.mipmap.ic_launcher));
+        }
 
         mContext = getActivity();
 
@@ -111,70 +121,33 @@ public class Fragment2 extends Fragment {
         recyclerViewGallery.setLayoutManager(gridLayoutManager);
         recyclerViewGallery.setItemViewCacheSize(40);
 
-        adapterAbove = new MyAdapter_Above(myDataset);
+        adapterAbove = new MyAdapterAbove(myDataset);
         adapterMenu = new MyAdapter(myDataset);
-//        adapterGallery = new ImageAdapter(this, MainActivity.uris);
-//        adapterGallery = new ImageAdapter(this, imageFiles);
+//        adapterImage = new ImageAdapter(this, MainActivity.uris);
+//        adapterImage = new ImageAdapter(this, imageFiles);
 
         recyclerViewAbove.setAdapter(adapterAbove);
         recyclerViewMenu.setAdapter(adapterMenu);
         recyclerViewGallery.setAdapter(adapterGallery);
 
+        recyclerViewAbove.addOnItemTouchListener(new OnClickListener(getActivity(), recyclerViewAbove, new OnClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
 
+                int poLength = mapSize - 1;
+
+                    Toast toast = Toast.makeText(getContext(), "11", Toast.LENGTH_SHORT);
+                    toast.show();
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+
+            }
+
+        }));
     }
 
-        Uri[] getThumbnails() {
-        String[] projection = {MediaStore.Images.Thumbnails._ID,
-                MediaStore.Images.Thumbnails.IMAGE_ID};
-        Cursor cur = getActivity().getContentResolver().query(
-                MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                projection,
-                null, null, null);
-        if (cur.getCount() == 0) {
-            return null;
-        }
-        cur.moveToFirst();
-
-        Uri[] urls = new Uri[cur.getCount()];
-        int id;
-        int count = 0;
-        while (cur.moveToNext()) {
-            id = cur.getInt(0);
-            Uri uri = Uri.parse(
-                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-            urls[count++] = uri;
-        }
-        cur.close();
-
-        return urls;
-    }
-
-//    // TODO: 2016. 5. 10. 비동기록 동작해야 함
-//    Uri[] getThumbnails() {
-//        String[] projection = {MediaStore.Images.Thumbnails._ID,
-//                MediaStore.Images.Thumbnails.IMAGE_ID};
-//        Cursor cur = getActivity().getContentResolver().query(
-//                MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-//                projection,
-//                null, null, null);
-//        if (cur.getCount() == 0) {
-//            return null;
-//        }
-//        cur.moveToFirst();
-//
-//        Uri[] urls = new Uri[cur.getCount()];
-//        int id;
-//        int count = 0;
-//        while (cur.moveToNext()) {
-//            id = cur.getInt(0);
-//            Uri uri = Uri.parse(
-//                    MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI + "/" + id);
-//            urls[count++] = uri;
-//        }
-//        cur.close();
-//
-//        return urls;
-//    }
 
     //폴더생성
     private void createImageGallery() {
