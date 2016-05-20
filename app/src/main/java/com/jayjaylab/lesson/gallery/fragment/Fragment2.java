@@ -1,7 +1,6 @@
 package com.jayjaylab.lesson.gallery.fragment;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -36,7 +35,7 @@ public class Fragment2 extends Fragment {
     final String TAG = Fragment2.class.getSimpleName();
     public static String KEY_IMAGE = "image";
 
-    static Uri[] imageFiles;
+    static String[] imageFiles;
     static Context mContext;
 
     static int mapSize;
@@ -157,13 +156,12 @@ public class Fragment2 extends Fragment {
                 folderPath = new ArrayList<>();
                 folderPath = hashMap.get(hashMapValues.get(position));
 
-                imageFiles = new Uri[folderPath.size()];
-
+                imageFiles = new String[folderPath.size()];
 
                 for (int i = 0; i < folderPath.size(); i++) {
-                    imageFiles[i] = Uri.parse(folderPath.get(i).getThumbnail().getPath());
+                    imageFiles[i] = folderPath.get(i).getThumbnail().getPath();
 
-                    Log.d("Path ", imageFiles[i].toString());
+                    Log.d("Path ", imageFiles[i]);
                 }
 
                 adapterImage = new ImageAdapter(Fragment2.this, imageFiles);

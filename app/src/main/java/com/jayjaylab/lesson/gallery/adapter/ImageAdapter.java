@@ -22,9 +22,9 @@ import com.jayjaylab.lesson.gallery.R;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     final String TAG = ImageAdapter.class.getSimpleName();
     Fragment fragment;
-    private Uri[] imagesFile;
+    private String[] imagesFile;
 
-    public ImageAdapter(Fragment fragment, Uri[] folderFile) {
+    public ImageAdapter(Fragment fragment, String[] folderFile) {
         this.fragment = fragment;
         imagesFile = folderFile;
     }
@@ -38,7 +38,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Uri imageFile = imagesFile[position];
+        String imageFile = imagesFile[position];
         Log.d(TAG, "onBindViewHolder() : position : " +
                 position +", imageFile: " + imageFile);
 
