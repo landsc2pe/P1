@@ -39,16 +39,16 @@ public class Fragment2 extends Fragment {
     static Uri[] imageFiles;
     static Context mContext;
 
-    static String[] rFname;
     static int mapSize;
-    static ArrayList<String> fname;
-    static HashMap<String, List<Image>> hmap;
-    static List<Image> path;
+    static HashMap<String, List<Image>> hashMap;
+    static ArrayList<String> hashMapValues;
+    static String[] folderName;
+    static List<Image> folderPath;
 
     private RecyclerView recyclerViewAbove;
     private RecyclerView recyclerViewMenu;
     private RecyclerView recyclerViewGallery;
-    private RecyclerView.Adapter adapterMenu, adapterGallery, adapterAbove;
+    private RecyclerView.Adapter adapterMenu, adapterAbove;
     private ArrayList<MyData> myDataset;
     private File mGalleryFolder;
     private String GALLERY_LOCATION = ".thumbnails";
@@ -65,25 +65,31 @@ public class Fragment2 extends Fragment {
 //
 
     public static void sortImagePath(Map<String, List<Image>> map) {
-        hmap = new HashMap<>();
-        Log.d("sort", "" + map.size());
         mapSize = map.size();
-        Iterator<String> iter = map.keySet().iterator();
-        fname = new ArrayList<String>();
-        hmap.putAll(map);
-        rFname = new String[mapSize];
+        hashMap = new HashMap<>();
+        hashMap.putAll(map);
+        hashMapValues = new ArrayList<>();
+        folderName = new String[mapSize];
 
         int count = 0;
+        Iterator<String> iter = map.keySet().iterator();
+
         while (iter.hasNext()) {
             String keys = iter.next();
-            fname.add(keys);
+
+            //add keys in the static ArrayList.
+            hashMapValues.add(keys);
+
+            //Making string array of folder name.
             String[] it = keys.split("/");
             int a = it.length-1;
-            rFname[count] = it[a];
+            folderName[count] = it[a];
 
 
-            Log.d("key", rFname[count]);
+            Log.d("folderName", folderName[count]);
+            Log.d("key", keys);
             Log.d("value", "" + map.get(keys));
+
             count++;
         }
 
@@ -113,16 +119,13 @@ public class Fragment2 extends Fragment {
 //            Log.d(TAG, "images : " + images);
 //        }
 
+        mContext = getActivity();
         myDataset = new ArrayList<>();
 
+        //"Above" icon button creator using folder name array.
         for (int i = 0; i < mapSize; i++) {
-            myDataset.add(new MyData(rFname[i], R.mipmap.ic_launcher));
+            myDataset.add(new MyData(folderName[i], R.mipmap.ic_launcher));
         }
-
-        mContext = getActivity();
-
-//        imageFiles = mGalleryFolder.listFiles();
-//        imageFiles = getThumbnails();
 
         recyclerViewAbove.setHasFixedSize(true);
         recyclerViewMenu.setHasFixedSize(true);
@@ -141,37 +144,39 @@ public class Fragment2 extends Fragment {
         adapterMenu = new MyAdapter(myDataset);
 
 //        adapterImage = new ImageAdapter(this, MainActivity.uris);
-        adapterImage = new ImageAdapter(this, imageFiles);
+//        adapterImage = new ImageAdapter(this, imageFiles);
 
         recyclerViewAbove.setAdapter(adapterAbove);
         recyclerViewMenu.setAdapter(adapterMenu);
-        recyclerViewGallery.setAdapter(adapterGallery);
 
+        //"Above" icon touch listener.
         recyclerViewAbove.addOnItemTouchListener(new OnClickListener(getActivity(), recyclerViewAbove, new OnClickListener.OnItemClickListener() {
+
             @Override
             public void onItemClick(View view, int position) {
+                folderPath = new ArrayList<>();
+                folderPath = hashMap.get(hashMapValues.get(position));
 
-                path = new ArrayList<Image>();
-                path = hmap.get(fname.get(position));
+                imageFiles = new Uri[folderPath.size()];
 
-                imageFiles = new Uri[path.size()];
 
-                for (int i = 0; i < path.size(); i++) {
+                for (int i = 0; i < folderPath.size(); i++) {
+                    imageFiles[i] = Uri.parse(folderPath.get(i).getThumbnail().getPath());
 
-                    imageFiles[i] = Uri.parse(path.get(i).getThumbnail().getPath());
-                    Log.d("path ", imageFiles[i].toString());
-
+                    Log.d("Path ", imageFiles[i].toString());
                 }
 
                 adapterImage = new ImageAdapter(Fragment2.this, imageFiles);
+                recyclerViewGallery.setAdapter(adapterImage);
 
             }
 
             @Override
             public void onItemLongClick(View view, int position) {
 
-            }
 
+
+            }
         }));
     }
 
