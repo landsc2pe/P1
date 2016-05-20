@@ -13,10 +13,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.jayjaylab.lesson.gallery.OnClickListener;
 import com.jayjaylab.lesson.gallery.R;
+import com.jayjaylab.lesson.gallery.adapter.ImageAdapter;
 import com.jayjaylab.lesson.gallery.adapter.MyAdapter;
 import com.jayjaylab.lesson.gallery.adapter.MyAdapterAbove;
 import com.jayjaylab.lesson.gallery.adapter.MyData;
@@ -24,6 +24,7 @@ import com.jayjaylab.lesson.gallery.model.Image;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,11 @@ public class Fragment2 extends Fragment {
     static Uri[] imageFiles;
     static Context mContext;
 
+    static String[] rFname;
     static int mapSize;
+    static ArrayList<String> fname;
+    static HashMap<String, List<Image>> hmap;
+    static List<Image> path;
 
     private RecyclerView recyclerViewAbove;
     private RecyclerView recyclerViewMenu;
@@ -47,6 +52,7 @@ public class Fragment2 extends Fragment {
     private ArrayList<MyData> myDataset;
     private File mGalleryFolder;
     private String GALLERY_LOCATION = ".thumbnails";
+    private ImageAdapter adapterImage;
 
 //    public static Fragment2 newInstance(String[] imageFiles) {
 //        Fragment2 fragment = new Fragment2();
@@ -59,15 +65,26 @@ public class Fragment2 extends Fragment {
 //
 
     public static void sortImagePath(Map<String, List<Image>> map) {
+        hmap = new HashMap<>();
         Log.d("sort", "" + map.size());
         mapSize = map.size();
-
-
         Iterator<String> iter = map.keySet().iterator();
+        fname = new ArrayList<String>();
+        hmap.putAll(map);
+        rFname = new String[mapSize];
+
+        int count = 0;
         while (iter.hasNext()) {
             String keys = iter.next();
-            Log.d("key", keys);
+            fname.add(keys);
+            String[] it = keys.split("/");
+            int a = it.length-1;
+            rFname[count] = it[a];
+
+
+            Log.d("key", rFname[count]);
             Log.d("value", "" + map.get(keys));
+            count++;
         }
 
     }
@@ -99,7 +116,7 @@ public class Fragment2 extends Fragment {
         myDataset = new ArrayList<>();
 
         for (int i = 0; i < mapSize; i++) {
-            myDataset.add(new MyData("change", R.mipmap.ic_launcher));
+            myDataset.add(new MyData(rFname[i], R.mipmap.ic_launcher));
         }
 
         mContext = getActivity();
@@ -110,7 +127,6 @@ public class Fragment2 extends Fragment {
         recyclerViewAbove.setHasFixedSize(true);
         recyclerViewMenu.setHasFixedSize(true);
         recyclerViewGallery.setHasFixedSize(true);
-
 
         LinearLayoutManager linearLayoutManagerAbove = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -123,8 +139,9 @@ public class Fragment2 extends Fragment {
 
         adapterAbove = new MyAdapterAbove(myDataset);
         adapterMenu = new MyAdapter(myDataset);
+
 //        adapterImage = new ImageAdapter(this, MainActivity.uris);
-//        adapterImage = new ImageAdapter(this, imageFiles);
+        adapterImage = new ImageAdapter(this, imageFiles);
 
         recyclerViewAbove.setAdapter(adapterAbove);
         recyclerViewMenu.setAdapter(adapterMenu);
@@ -134,10 +151,20 @@ public class Fragment2 extends Fragment {
             @Override
             public void onItemClick(View view, int position) {
 
-                int poLength = mapSize - 1;
+                path = new ArrayList<Image>();
+                path = hmap.get(fname.get(position));
 
-                    Toast toast = Toast.makeText(getContext(), "11", Toast.LENGTH_SHORT);
-                    toast.show();
+                imageFiles = new Uri[path.size()];
+
+                for (int i = 0; i < path.size(); i++) {
+
+                    imageFiles[i] = Uri.parse(path.get(i).getThumbnail().getPath());
+                    Log.d("path ", imageFiles[i].toString());
+
+                }
+
+                adapterImage = new ImageAdapter(Fragment2.this, imageFiles);
+
             }
 
             @Override
@@ -157,4 +184,18 @@ public class Fragment2 extends Fragment {
             mGalleryFolder.mkdirs();
         }
     }
+
+//    폴더안의 모든 파일 구하기[폴더 포함]
+//    public String[] getFileList(String string) {
+//
+//        File fileRoot = new File(string);
+//        if (fileRoot.isDirectory() == false) {
+//            return null;
+//        }
+//        String[] fileList = fileRoot.list();
+//        for(int i=0 ; i<fileList.length ; i++) {
+//            Log.d("File ", fileList[i]);
+//        }
+//        return fileList;
+//    }
 }

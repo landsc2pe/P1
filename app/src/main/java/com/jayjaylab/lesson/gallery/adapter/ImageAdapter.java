@@ -46,7 +46,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             Glide.with(fragment)
                     .load(imageFile).override(300,300)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .thumbnail(0.3f).listener(requestListener)
+                    .thumbnail(0.3f)
                     .into(holder.imageView);
         }
     }
