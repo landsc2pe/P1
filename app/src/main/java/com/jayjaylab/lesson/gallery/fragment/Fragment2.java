@@ -20,13 +20,10 @@ import com.jayjaylab.lesson.gallery.adapter.MyAdapter;
 import com.jayjaylab.lesson.gallery.adapter.MyAdapterAbove;
 import com.jayjaylab.lesson.gallery.adapter.MyData;
 import com.jayjaylab.lesson.gallery.model.Image;
+import com.jayjaylab.lesson.gallery.util.ImageLoader;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Homin on 2016-04-07.
@@ -35,14 +32,14 @@ public class Fragment2 extends Fragment {
     final String TAG = Fragment2.class.getSimpleName();
     public static String KEY_IMAGE = "image";
 
-    static String[] imageFiles;
-    static Context mContext;
+    String[] imageFiles;
+    Context mContext;
 
-    static int mapSize;
-    static HashMap<String, List<Image>> hashMap;
-    static ArrayList<String> hashMapValues;
-    static String[] folderName;
-    static List<Image> folderPath;
+    int mapSize;
+    Map<String, List<Image>> hashMap;
+    List<String> hashMapValues;
+    String[] folderName;
+    List<Image> folderPath;
 
     private RecyclerView recyclerViewAbove;
     private RecyclerView recyclerViewMenu;
@@ -63,35 +60,14 @@ public class Fragment2 extends Fragment {
 //    }
 //
 
-    public static void sortImagePath(Map<String, List<Image>> map) {
-        mapSize = map.size();
-        hashMap = new HashMap<>();
-        hashMap.putAll(map);
-        hashMapValues = new ArrayList<>();
-        folderName = new String[mapSize];
-
-        int count = 0;
-        Iterator<String> iter = map.keySet().iterator();
-
-        while (iter.hasNext()) {
-            String keys = iter.next();
-
-            //add keys in the static ArrayList.
-            hashMapValues.add(keys);
-
-            //Making string array of folder name.
-            String[] it = keys.split("/");
-            int a = it.length-1;
-            folderName[count] = it[a];
-
-
-            Log.d("folderName", folderName[count]);
-            Log.d("key", keys);
-            Log.d("value", "" + map.get(keys));
-
-            count++;
+    public void sortImagePath(Map<String, List<Image>> map) {
+        Set<Map.Entry<String, List<Image>>> entrySet = map.entrySet();
+        for(Map.Entry entry : entrySet) {
         }
 
+        hashMap = map;
+        folderName = hashMap.keySet().toArray(new String[map.size()]);
+        Log.d(TAG, "folderName # : " + folderName.length);
     }
 
     @Nullable
@@ -165,6 +141,12 @@ public class Fragment2 extends Fragment {
                 }
 
                 adapterImage = new ImageAdapter(Fragment2.this, imageFiles);
+                adapterImage.setOnItemClickListener(new ImageAdapter.OnItemClickListener() {
+                    @Override
+                    public void onClick(int position) {
+
+                    }
+                });
                 recyclerViewGallery.setAdapter(adapterImage);
 
             }
@@ -187,18 +169,4 @@ public class Fragment2 extends Fragment {
             mGalleryFolder.mkdirs();
         }
     }
-
-//    폴더안의 모든 파일 구하기[폴더 포함]
-//    public String[] getFileList(String string) {
-//
-//        File fileRoot = new File(string);
-//        if (fileRoot.isDirectory() == false) {
-//            return null;
-//        }
-//        String[] fileList = fileRoot.list();
-//        for(int i=0 ; i<fileList.length ; i++) {
-//            Log.d("File ", fileList[i]);
-//        }
-//        return fileList;
-//    }
 }

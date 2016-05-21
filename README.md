@@ -30,6 +30,8 @@ a simple gallery
 
 ### Directory 별 thumbnail 매핑?
 Map<String, List<String>> directoryMapping; 은 아래와 같은 테이블을 만듬.
+
+```
 +-------------+-------------------------------------------
 | Directory   | Images
 +-------------+-------------------------------------------
@@ -37,6 +39,11 @@ Map<String, List<String>> directoryMapping; 은 아래와 같은 테이블을 �
 | kakao       | face1.png, face2.png, ourface.png
 | ...         |
 +-------------+-------------------------------------------
+```
+
+### Generic Class
+* Integer, Float, Long, Double 을 type parameter로 하는 Calculator Class 만들기
+  * 덧셋, 뺄셈, 곱셈, 나눕셈 메소드 만들기.
 
 # 읽을 책
 * 객체지향 관련된 책

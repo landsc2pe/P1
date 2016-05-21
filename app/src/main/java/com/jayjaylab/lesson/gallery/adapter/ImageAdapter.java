@@ -15,6 +15,9 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.jayjaylab.lesson.gallery.R;
+import com.jayjaylab.lesson.gallery.model.Image;
+
+import java.util.List;
 
 /**
  * Created by nigelhenshaw on 25/06/2015.
@@ -22,11 +25,16 @@ import com.jayjaylab.lesson.gallery.R;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     final String TAG = ImageAdapter.class.getSimpleName();
     Fragment fragment;
-    private String[] imagesFile;
+    private List<Image> imagesFile;
+    OnItemClickListener onItemClickListener;
 
-    public ImageAdapter(Fragment fragment, String[] folderFile) {
+    public ImageAdapter(Fragment fragment, List<Image> folderFile) {
         this.fragment = fragment;
         imagesFile = folderFile;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        onItemClickListener = listener;
     }
 
     @Override
@@ -37,14 +45,22 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        String imageFile = imagesFile[position];
+    public void onBindViewHolder(ViewHolder holder, final int position) {
+        Image image = imagesFile[position];
         Log.d(TAG, "onBindViewHolder() : position : " +
-                position +", imageFile: " + imageFile);
+                position +", image: " + image);
 
-        if(imageFile != null) {
+        if(image != null) {
+            holder.rootLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(onItemClickListener != null) {
+                        onItemClickListener.onClick(position);
+                    }
+                }
+            });
             Glide.with(fragment)
-                    .load(imageFile).override(300,300)
+                    .load(image.getThumbnail().getPath()).override(300,300)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .thumbnail(0.3f)
                     .into(holder.imageView);
@@ -58,10 +74,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView imageView;
+        public View rootLayout;
 
         public ViewHolder(View view) {
             super(view);
 
+            rootLayout = view.findViewById(R.id.rootlayout);
             imageView = (ImageView) view.findViewById(R.id.item_img);
         }
     }
@@ -71,7 +89,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         @Override
         public boolean onException(Exception e, Uri file, Target<GlideDrawable> target,
                                    boolean isFirstResource) {
-            Log.d(TAG, ", file : " + file +
+            if(com.jayjaylab.lesson.gallery.util.Log.DEBUG) Log.d(TAG, ", file : " +
+                    file +
                     ", target : " + target + ", isFirstResource : " + isFirstResource);
             if(e != null) {
                 e.printStackTrace();
@@ -90,4 +109,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             return false;
         }
     };
+
+    public interface OnItemClickListener {
+        public void onClick(int position);
+    }
 }

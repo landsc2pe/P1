@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.replace(R.id.main_layout, fragment_second, "ManageFragment");
                     fragmentManager.findFragmentByTag("ManageFragment");
-                    Fragment2.sortImagePath(map);
+                    fragment_second.sortImagePath(map);
                     fragmentTransaction.commit();
 
                     msn++;
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
             // app-defined int constant
 
         } else {
-            Log.e(TAG, "permission deny");
+            Log.d(TAG, "permission is already allowed...");
 
             getImageUriInBackground();
         }
