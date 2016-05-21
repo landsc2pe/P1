@@ -15,7 +15,7 @@ import com.jayjaylab.lesson.gallery.R;
  * Created by Homin on 2016-04-07.
  */
 public class Fragment1 extends Fragment {
-
+    public static final String TAG = Fragment1.class.getSimpleName();
     private ImageView ImageView;
 
     @Nullable

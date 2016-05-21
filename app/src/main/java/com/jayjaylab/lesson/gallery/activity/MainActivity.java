@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadListener {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragment_first = new Fragment1();
-        fragmentTransaction.replace(R.id.main_layout, fragment_first, "MainFragment");
+        fragmentTransaction.replace(R.id.main_layout, fragment_first, Fragment1.TAG);
         fragmentTransaction.commit();
 
 
